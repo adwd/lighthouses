@@ -6,7 +6,8 @@
   "jsRules": {},
   "rules": {
     "no-import-side-effect": false,
-    "quotemark": [true, "single"]
+    "quotemark": [true, "single"],
+    "no-non-null-assertion": false
   },
   "rulesDirectory": [],
   "linterOptions": {

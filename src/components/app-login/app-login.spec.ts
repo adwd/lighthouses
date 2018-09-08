@@ -1,19 +1,19 @@
 import { TestWindow } from '@stencil/core/testing';
-import { AppHome } from './app-home';
+import { AppLogin } from './app-login';
 
-describe('app', () => {
+describe('app-login', () => {
   it('should build', () => {
-    expect(new AppHome()).toBeTruthy();
+    expect(new AppLogin()).toBeTruthy();
   });
 
   describe('rendering', () => {
-    let element: HTMLAppHomeElement;
+    let element: HTMLAppLoginElement;
     let testWindow: TestWindow;
     beforeEach(async () => {
       testWindow = new TestWindow();
       element = await testWindow.load({
-        components: [AppHome],
-        html: '<app-home></app-home>',
+        components: [AppLogin],
+        html: '<app-login></app-login>',
       });
     });
 

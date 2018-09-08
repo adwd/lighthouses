@@ -1,0 +1,17 @@
+{
+  "defaultSeverity": "error",
+  "extends": [
+    "tslint-ionic-rules"
+  ],
+  "jsRules": {},
+  "rules": {
+    "no-import-side-effect": false,
+    "quotemark": [true, "single"]
+  },
+  "rulesDirectory": [],
+  "linterOptions": {
+    "exclude": [
+      "src/components.d.ts"
+    ]
+  }
+}

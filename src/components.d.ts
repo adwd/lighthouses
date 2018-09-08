@@ -62,6 +62,39 @@ declare global {
 declare global {
 
   namespace StencilComponents {
+    interface AppLogin {
+
+    }
+  }
+
+  interface HTMLAppLoginElement extends StencilComponents.AppLogin, HTMLStencilElement {}
+
+  var HTMLAppLoginElement: {
+    prototype: HTMLAppLoginElement;
+    new (): HTMLAppLoginElement;
+  };
+  interface HTMLElementTagNameMap {
+    'app-login': HTMLAppLoginElement;
+  }
+  interface ElementTagNameMap {
+    'app-login': HTMLAppLoginElement;
+  }
+  namespace JSX {
+    interface IntrinsicElements {
+      'app-login': JSXElements.AppLoginAttributes;
+    }
+  }
+  namespace JSXElements {
+    export interface AppLoginAttributes extends HTMLAttributes {
+
+    }
+  }
+}
+
+
+declare global {
+
+  namespace StencilComponents {
     interface AppRoot {
 
     }

@@ -17,6 +17,14 @@ npm install
 npm start
 ```
 
+write credentials (e.g. firebase api key) to `src/env.ts`
+```bash
+// src/env.ts
+export const env = {
+  FIREBASE_API_KEY: 'xxx',
+};
+```
+
 To build the app for production, run:
 
 ```bash

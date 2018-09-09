@@ -1,5 +1,6 @@
 import firebase from 'firebase/app';
 import 'firebase/auth';
+import 'firebase/firestore';
 import { env } from '../env';
 import { Observable } from 'rxjs';
 
@@ -13,6 +14,8 @@ const config = {
 };
 
 export const app = firebase.initializeApp(config);
+
+firebase.firestore().settings({ timestampsInSnapshots: true });
 
 export const authState = new Observable<firebase.User | null>(observer => {
   app.auth().onAuthStateChanged(observer);

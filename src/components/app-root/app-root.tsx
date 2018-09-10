@@ -4,6 +4,7 @@ import firebase from 'firebase/app';
 import 'firebase/firestore';
 import { Observable, Subscription } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { setLoginUser } from '../../fire/firestore';
 
 @Component({
   tag: 'app-root',
@@ -21,12 +22,7 @@ export class AppRoot {
     const sub = this.authState.pipe(
       tap(user => {
         if (user) {
-          const doc = this.app.firestore().collection('users').doc(user.uid);
-          doc.set({
-            email: user.email,
-            photoURL: user.photoURL,
-            displayName: user.displayName,
-          });
+          setLoginUser(this.app.firestore(), user);
         }
       }),
     ).subscribe(user => this.login = !!user);

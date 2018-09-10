@@ -1,6 +1,8 @@
 import { Component, Prop, State } from '@stencil/core';
 import { MatchResults } from '@stencil/router';
 import firebase from 'firebase/app';
+import { lhrCollection } from '../../fire/firestore';
+import { Subscription } from 'rxjs';
 
 @Component({
   tag: 'app-app',
@@ -10,13 +12,19 @@ export class AppApp {
   @Prop() match!: MatchResults;
   @State() lhrs: string[] = [];
 
+  sub = new Subscription();
+
   componentWillLoad() {
     const user = this.app.auth().currentUser!;
-    this.app.firestore().collection('users').doc(user.uid)
-      .collection('apps').doc(this.match.params.id)
-      .collection('lhrs').onSnapshot(snapshot => {
-        this.lhrs = snapshot.docs.map(doc => doc.data().path);
+    const s = lhrCollection(this.app.firestore(), user.uid, this.match.params.id)
+      .subscribe(snapshot => {
+        this.lhrs = snapshot.map(doc => doc.data().path);
       });
+    this.sub.add(s);
+  }
+
+  componentDidUnload() {
+    this.sub.unsubscribe();
   }
 
   render() {

@@ -1,13 +1,6 @@
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
-import { URL } from 'url';
-
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-import * as lighthouse from 'lighthouse';
-import * as puppeteer from 'puppeteer';
-import * as moment from 'moment';
+import { launchChromeAndRunLighthouse, uploadReport } from './create-app';
 
 const adminApp = admin.initializeApp(functions.config().firebase);
 admin.firestore(adminApp).settings({ timestampsInSnapshots: true });
@@ -25,56 +18,25 @@ exports.createApp = functions.firestore
     .onCreate(async (snap, context) => {
       const { url } = snap.data();
       const result = await launchChromeAndRunLighthouse(url);
-      const saveResult = await admin.firestore(adminApp).collection('users').doc(context.params.userId)
-        .collection('apps').doc(context.params.appId)
-        .collection('lhrs')
-        .add({
-          createdAt: new Date()
-        });
-      
       const html = result.report;
       delete result.report;
       
-      await uploadReport(result, html, context.params.userId, saveResult.id);
+      await uploadReport(adminApp, result, html, context.params.userId, context.params.appId);
     });
 
+// When report is uploaded to storage, save path to firesotre
+exports.reportCompleted = functions.storage.object().onFinalize(async (object) => {
+  const re = /(\w+)\/(\w+)\/([\w-]+)-report\.json$/;
+  const result = object.name.match(re);
+  if (!result) {
+    return null;
+  }
+  const [, userId, appId] = result;
 
-export async function launchChromeAndRunLighthouse(url: string): Promise<any> {
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-
-  const result = await lighthouse(url, {
-    port: (new URL(browser.wsEndpoint())).port,
-    output: ['html'],
-    logLevel: 'info',
-  });
-
-  return result;
-}
-
-export async function uploadReport(report: string, html: string, userId: string, appId: string): Promise<any[]> {
-  const tempReportFilePath = path.join(os.tmpdir(), 'report.json');
-  const tempHtmlFilePath = path.join(os.tmpdir(), 'report.html');
-  fs.writeFileSync(tempReportFilePath, JSON.stringify(report, null, 2));
-  fs.writeFileSync(tempHtmlFilePath, html);
-
-  const bucket = admin.storage(adminApp).bucket();
-  const now = moment().utc().format('YYYYMMDD-HHmmss');
-  const [uploadedReportFile] = await bucket.upload(tempReportFilePath, {
-    destination: `${userId}/${appId}/${now}-report.json`,
-    metadata: {
-      contentType: 'application/json',
-      cacheControl: 'public, max-age=31536000',
-    },
-  });
-  const [uploadedHtmlFile] = await bucket.upload(tempHtmlFilePath, {
-    destination: `${userId}/${appId}/${now}-report.html`,
-    metadata: {
-      contentType: 'text/html; charset=utf-8',
-      cacheControl: 'public, max-age=31536000',
-    },
-  });
-
-  return [uploadedReportFile, uploadedHtmlFile]
-}
+  await adminApp.firestore().collection('users').doc(userId)
+    .collection('apps').doc(appId)
+    .collection('lhrs')
+    .add({
+      path: object.name,
+    });
+});

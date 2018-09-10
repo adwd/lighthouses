@@ -64,9 +64,9 @@ export class AppApps {
             </form>
           </div>
           {this.apps.map(app => (
-            <div class='Box-body d-flex flex-items-center'>
+            <div class='Box-row Box-row--hover-blue d-flex flex-items-center'>
               <h3 class='Box-title overflow-hidden flex-auto'>
-                {app.url}
+                <stencil-route-link url={`/apps/${app.id}`}>{app.url}</stencil-route-link>
               </h3>
               <button class='btn btn-sm' onClick={() => this.handleRemove(app.id)}>
                 Remove
@@ -74,7 +74,7 @@ export class AppApps {
             </div>
           ))}
           <div class='Box-footer'>
-            Box footer
+            {this.apps.length} apps
           </div>
         </div>
       </div>

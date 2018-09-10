@@ -1,6 +1,8 @@
 import { Component, Prop, State } from '@stencil/core';
 import 'firebase/auth';
 import 'firebase/firestore';
+import { appCollection, addApp, deleteApp } from '../../fire/firestore';
+import { Subscription } from 'rxjs';
 
 @Component({
   tag: 'app-apps',
@@ -10,13 +12,19 @@ export class AppApps {
   @State() apps: { id: string, url: string }[] = [];
   @Prop({ context: 'firebaseApp' }) private app!: firebase.app.App;
 
+  sub = new Subscription();
+  
   componentWillLoad() {
     const user = this.app.auth().currentUser!;
-    this.app.firestore().collection('users').doc(user.uid)
-      .collection('apps')
-      .onSnapshot(snapshot => {
-        this.apps = snapshot.docs.map(doc => ({ id: doc.id, url: doc.data().url }));
+    const s = appCollection(this.app.firestore(), user.uid)
+      .subscribe(snapshots => {
+        this.apps = snapshots.map(doc => ({ id: doc.id, url: doc.data().url }));
       });
+    this.sub.add(s);
+  }
+
+  componentDidUnload() {
+    this.sub.unsubscribe();
   }
 
   handleChange = (event: any) => {
@@ -26,17 +34,12 @@ export class AppApps {
   handleSubmit = async (ev: Event) => {
     ev.preventDefault();
     const user = this.app.auth().currentUser!;
-    await this.app.firestore().collection('users').doc(user.uid)
-      .collection('apps')
-      .add({ url: this.newAppURL });
+    await addApp(this.app.firestore(), user.uid, this.newAppURL);
   }
 
   handleRemove = (appId: string) => {
     const user = this.app.auth().currentUser!;
-    this.app.firestore().collection('users').doc(user.uid)
-      .collection('apps')
-      .doc(appId)
-      .delete();
+    deleteApp(this.app.firestore(), user.uid, appId);
   }
 
   render() {
@@ -64,9 +67,9 @@ export class AppApps {
             </form>
           </div>
           {this.apps.map(app => (
-            <div class='Box-body d-flex flex-items-center'>
+            <div class='Box-row Box-row--hover-blue d-flex flex-items-center'>
               <h3 class='Box-title overflow-hidden flex-auto'>
-                {app.url}
+                <stencil-route-link url={`/apps/${app.id}`}>{app.url}</stencil-route-link>
               </h3>
               <button class='btn btn-sm' onClick={() => this.handleRemove(app.id)}>
                 Remove
@@ -74,7 +77,7 @@ export class AppApps {
             </div>
           ))}
           <div class='Box-footer'>
-            Box footer
+            {this.apps.length} apps
           </div>
         </div>
       </div>

@@ -27,6 +27,7 @@
     "firebase": "^5.4.2",
     "primer": "^10.8.1",
     "request": "^2.88.0",
+    "rxfire": "^3.0.1",
     "rxjs": "^6.3.2"
   },
   "devDependencies": {
